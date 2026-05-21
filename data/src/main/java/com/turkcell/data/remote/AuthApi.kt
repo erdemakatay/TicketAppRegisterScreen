@@ -1,9 +1,12 @@
 package com.turkcell.data.remote
 
 import com.turkcell.data.dto.CredentialsDto
+import com.turkcell.data.dto.EventDto
 import com.turkcell.data.dto.RefreshRequestDto
+import com.turkcell.data.dto.TicketDto
 import com.turkcell.data.dto.TokenPairDto
 import retrofit2.http.Body
+import retrofit2.http.GET
 import retrofit2.http.POST
 
 // Retrofit ile spesifik bir API'e istek atan kodu yazdık.
@@ -16,4 +19,5 @@ interface AuthApi {
 
     @POST("/auth/refresh")
     suspend fun refresh(@Body body: RefreshRequestDto): TokenPairDto
+
 }

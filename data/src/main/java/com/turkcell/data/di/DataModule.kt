@@ -1,5 +1,6 @@
 package com.turkcell.data.di
 
+import com.turkcell.data.local.TokenStore
 import com.turkcell.data.remote.AuthApi
 import com.turkcell.data.repository.AuthRepositoryImpl
 import com.turkcell.domain.AuthRepository
@@ -10,8 +11,23 @@ import okhttp3.logging.HttpLoggingInterceptor
 import org.koin.dsl.module
 import retrofit2.Retrofit
 import retrofit2.converter.kotlinx.serialization.asConverterFactory
+import com.turkcell.data.network.AuthInterceptor
+import com.turkcell.data.network.TokenAuthenticator
+import org.koin.core.qualifier.named
+import com.turkcell.data.remote.EventApi
+import com.turkcell.data.remote.TicketApi
+import com.turkcell.data.repository.EventRepositoryImpl
+import com.turkcell.data.repository.TicketRepositoryImpl
+import com.turkcell.domain.EventRepository
+import com.turkcell.domain.TicketRepository
+
 
 private const val BASE_URL = "https://tickets-api.halitkalayci.com/"
+
+
+private  val REFRESH_CLIENT = named("refresh_client")
+private  val REFRESH_RETROFİT = named("refresh_retrofit")
+private  val REFRESH_API = named("refresh_api")
 
 val dataModule = module {
     // Scope (Kapsam)
@@ -34,9 +50,44 @@ val dataModule = module {
         }
     }
 
+    single {
+        TokenStore(context = get())
+    }
+
+
+    single { AuthInterceptor(tokenStore = get()) }
+
+    single {
+        TokenAuthenticator(
+            tokenStore = get(),
+            refreshApiProvider = { get<AuthApi>(REFRESH_API) }
+        )
+    }
+
+    single(REFRESH_CLIENT) {
+        OkHttpClient.Builder().addInterceptor(get<HttpLoggingInterceptor>()).build()
+    }
+
+    // Refresh stack diye geçer bu refresh stack ile sen authenticatorun içinden gidersin
+
+    single(REFRESH_RETROFİT) {
+        Retrofit.Builder()
+            .baseUrl(BASE_URL)
+            .client(get(REFRESH_CLIENT))
+            .addConverterFactory(get<Json>().asConverterFactory("application/json".toMediaType()))
+            .build()
+    }
+
+    single(REFRESH_API) {
+        get<Retrofit>(REFRESH_RETROFİT).create(AuthApi::class.java)
+    }
+
+
     // HTTP isteklerini yönetmek..
     single {
         OkHttpClient.Builder()
+            .addInterceptor(get<AuthInterceptor>())
+            .authenticator(get<TokenAuthenticator>())
             .addInterceptor(get<HttpLoggingInterceptor>())
             .build()
     }
@@ -53,11 +104,32 @@ val dataModule = module {
 
     single<AuthRepository> {
         AuthRepositoryImpl(
-            authApi = get()
+            authApi = get(),
+            tokenStore = get()
+
         )
+    }
+
+
+
+    single { get<Retrofit>().create(EventApi::class.java) }
+
+    single<EventRepository> {
+        EventRepositoryImpl(get())
+    }
+
+
+    single { get<Retrofit>().create(TicketApi::class.java) }
+
+    single<TicketRepository> {
+        TicketRepositoryImpl(get())
     }
 
     // factory -> Her çağırıldığı noktada yeni instance üretir. Her fonksiyon için birer örnek
 
     // scoped -> Class -> tüm fonksiyonlarına 1 örnek
 }
+
+
+
+

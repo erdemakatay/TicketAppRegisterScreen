@@ -8,15 +8,16 @@ import com.turkcell.domain.AuthSession
 import com.turkcell.domain.User
 import com.turkcell.domain.UserRole
 import kotlinx.coroutines.flow.Flow
-
-
+import com.turkcell.data.local.TokenStore
+import kotlinx.coroutines.flow.map
 
 
 class AuthRepositoryImpl(
-    private val authApi: AuthApi
+    private val authApi: AuthApi,
+    private val tokenStore: TokenStore
 ) : AuthRepository {
-    override val isLoggedIn: Flow<Boolean>
-        get() = TODO("Not yet implemented")
+    override val isLoggedIn: Flow<Boolean> = tokenStore.accessToken.map { it != null }
+
 
     override suspend fun login(
         email: String,
@@ -24,7 +25,7 @@ class AuthRepositoryImpl(
     ): Result<AuthSession> = runCatchingApi {
         authApi.login(CredentialsDto(email=email, password=password))
     }.onSuccess {
-        // jwt'i bi yere yaz..
+          tokenStore.save(it.accessToken , it.refreshToken)
     }
         .map {
                 i ->
@@ -34,6 +35,7 @@ class AuthRepositoryImpl(
                 ),
                 accessToken = i.accessToken,
                 refreshToken = i.refreshToken
+
             )
         }
 
