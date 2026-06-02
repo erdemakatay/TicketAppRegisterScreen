@@ -2,15 +2,16 @@ package com.turkcell.ticketapp.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.turkcell.domain.Event
-import com.turkcell.domain.EventRepository
-import com.turkcell.domain.Ticket
-import com.turkcell.domain.TicketRepository
+import com.turkcell.domain.event.Event
+import com.turkcell.domain.event.EventRepository
+import com.turkcell.domain.ticket.Ticket
+import com.turkcell.domain.ticket.TicketRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import com.turkcell.domain.auth.AuthRepository
 
 data class HomePageUiState(
     val events: List<Event> = emptyList(),
@@ -22,18 +23,19 @@ data class HomePageUiState(
 
 class HomePageViewModel(
     private val eventRepository: EventRepository,
-    private val ticketRepository: TicketRepository
+    private val ticketRepository: TicketRepository,
+    private val authRepository: AuthRepository
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(HomePageUiState())
     val state: StateFlow<HomePageUiState> = _state.asStateFlow()
 
     init {
-        fetchEvents()
+        LoadEvents()
         fetchMyTickets()
     }
 
-    fun fetchEvents() {
+    fun LoadEvents() {
         viewModelScope.launch {
             _state.update { it.copy(isLoadingEvents = true, errorMessage = null) }
             eventRepository.getEvents()
@@ -70,4 +72,10 @@ class HomePageViewModel(
     }
 
     fun consumeError() = _state.update { it.copy(errorMessage = null) }
+
+    fun logout() {
+        viewModelScope.launch {
+            authRepository.logout()
+        }
+    }
 }

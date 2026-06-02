@@ -1,5 +1,9 @@
-package com.turkcell.data.dto
+package com.turkcell.data.dto.event
 
+import kotlinx.serialization.Serializable
+
+
+@Serializable
 data class EventDto(
     val id: String,
     val name: String,
@@ -10,11 +14,4 @@ data class EventDto(
     val ticketTypes: List<TicketTypeDto>
 )
 
-data class TicketTypeDto(
-    val id: String,
-    val name: String,
-    val priceCents: Int,
-    val capacity: Int,
-    val soldCount: Int,
-    val remaining: Int
-)
+

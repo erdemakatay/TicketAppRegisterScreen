@@ -21,6 +21,9 @@ navigationRuntimeKtx = "2.9.8"
 navigationComposeVersion = "2.9.8"
 runtime = "1.11.1"
 lifecycleViewmodelKtx = "2.10.0"
+playServicesBasement = "18.10.0"
+cronetApi = "143.7445.0"
+qrcode-kotlin = "4.1.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -53,6 +56,10 @@ androidx-navigation-runtime-ktx = { group = "androidx.navigation", name = "navig
 navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationComposeVersion" }
 androidx-compose-runtime = { group = "androidx.compose.runtime", name = "runtime", version.ref = "runtime" }
 androidx-lifecycle-viewmodel-ktx = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", version.ref = "lifecycleViewmodelKtx" }
+androidx-compose-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended" }
+play-services-basement = { group = "com.google.android.gms", name = "play-services-basement", version.ref = "playServicesBasement" }
+cronet-api = { group = "org.chromium.net", name = "cronet-api", version.ref = "cronetApi" }
+qrcode-kotlin = { group = "io.github.g0dkar", name = "qrcode-kotlin", version.ref = "qrcode-kotlin" }
 
 
 [plugins]

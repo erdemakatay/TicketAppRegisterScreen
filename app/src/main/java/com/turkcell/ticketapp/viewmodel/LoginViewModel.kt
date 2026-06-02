@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.turkcell.data.network.ApiException
 import com.turkcell.data.network.NetworkException
-import com.turkcell.domain.AuthRepository
+import com.turkcell.domain.auth.AuthRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -21,7 +21,7 @@ data class LoginUiState(val email: String = "",
 }
 
 class LoginViewModel(
-    private val authRepository: AuthRepository //bağımlılık
+    private val authRepository: AuthRepository
 ) : ViewModel() {
     private val _state = MutableStateFlow(LoginUiState())
     val state: StateFlow<LoginUiState> = _state.asStateFlow()

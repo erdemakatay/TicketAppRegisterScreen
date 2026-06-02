@@ -1,4 +1,6 @@
-package com.turkcell.domain
+package com.turkcell.domain.event
+
+import com.turkcell.domain.ticket.TicketType
 
 data class Event(
     val id: String,

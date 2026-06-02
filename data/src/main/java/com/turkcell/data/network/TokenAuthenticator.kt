@@ -1,7 +1,6 @@
 package com.turkcell.data.network
 
-import android.adservices.ondevicepersonalization.RequestToken
-import com.turkcell.data.dto.RefreshRequestDto
+import com.turkcell.data.dto.auth.RefreshRequestDto
 import com.turkcell.data.local.TokenStore
 import com.turkcell.data.remote.AuthApi
 import kotlinx.coroutines.runBlocking
@@ -9,7 +8,6 @@ import okhttp3.Authenticator
 import okhttp3.Request
 import okhttp3.Response
 import okhttp3.Route
-import java.security.Provider
 
 // Sadece HTTP 401'lerde çalış. Refresh akışı sürdür.
 class TokenAuthenticator(

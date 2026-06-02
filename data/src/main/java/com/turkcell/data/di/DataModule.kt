@@ -3,7 +3,7 @@ package com.turkcell.data.di
 import com.turkcell.data.local.TokenStore
 import com.turkcell.data.remote.AuthApi
 import com.turkcell.data.repository.AuthRepositoryImpl
-import com.turkcell.domain.AuthRepository
+import com.turkcell.domain.auth.AuthRepository
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -18,27 +18,25 @@ import com.turkcell.data.remote.EventApi
 import com.turkcell.data.remote.TicketApi
 import com.turkcell.data.repository.EventRepositoryImpl
 import com.turkcell.data.repository.TicketRepositoryImpl
-import com.turkcell.domain.EventRepository
-import com.turkcell.domain.TicketRepository
+import com.turkcell.domain.event.EventRepository
+import com.turkcell.domain.ticket.TicketRepository
+import com.turkcell.data.remote.PurchaseApi
+import com.turkcell.domain.purchase.PurchaseRepository
+import com.turkcell.data.repository.PurchaseRepositoryImpl
+
 
 
 private const val BASE_URL = "https://tickets-api.halitkalayci.com/"
 
-
-private  val REFRESH_CLIENT = named("refresh_client")
-private  val REFRESH_RETROFİT = named("refresh_retrofit")
-private  val REFRESH_API = named("refresh_api")
+private val REFRESH_CLIENT = named("refresh_client")
+private val REFRESH_RETROFIT = named("refresh_retrofit")
+private val REFRESH_API = named("refresh_api")
 
 val dataModule = module {
-    // Scope (Kapsam)
-    // 3 temel seçenek
 
-    // Yaşam döngüsündeki bağımlılığın davranış biçimi
-
-    // Single (Singleton) -> Uygulama yaşam döngüsü boyunca tek örnek.
     single {
         Json {
-            ignoreUnknownKeys = true // Cevapta var olan ama classta olmayan alanları ignore et.
+            ignoreUnknownKeys = true
             explicitNulls = false
             isLenient = true
         }
@@ -54,7 +52,6 @@ val dataModule = module {
         TokenStore(context = get())
     }
 
-
     single { AuthInterceptor(tokenStore = get()) }
 
     single {
@@ -68,9 +65,7 @@ val dataModule = module {
         OkHttpClient.Builder().addInterceptor(get<HttpLoggingInterceptor>()).build()
     }
 
-    // Refresh stack diye geçer bu refresh stack ile sen authenticatorun içinden gidersin
-
-    single(REFRESH_RETROFİT) {
+    single(REFRESH_RETROFIT) {
         Retrofit.Builder()
             .baseUrl(BASE_URL)
             .client(get(REFRESH_CLIENT))
@@ -79,11 +74,9 @@ val dataModule = module {
     }
 
     single(REFRESH_API) {
-        get<Retrofit>(REFRESH_RETROFİT).create(AuthApi::class.java)
+        get<Retrofit>(REFRESH_RETROFIT).create(AuthApi::class.java)
     }
 
-
-    // HTTP isteklerini yönetmek..
     single {
         OkHttpClient.Builder()
             .addInterceptor(get<AuthInterceptor>())
@@ -101,35 +94,28 @@ val dataModule = module {
     }
 
     single { get<Retrofit>().create(AuthApi::class.java) }
-
     single<AuthRepository> {
         AuthRepositoryImpl(
             authApi = get(),
             tokenStore = get()
-
         )
     }
 
-
-
     single { get<Retrofit>().create(EventApi::class.java) }
-
     single<EventRepository> {
         EventRepositoryImpl(get())
     }
 
+    single { get<Retrofit>().create(PurchaseApi::class.java) }
+    single<PurchaseRepository> {
+        PurchaseRepositoryImpl(get())
+    }
 
     single { get<Retrofit>().create(TicketApi::class.java) }
-
     single<TicketRepository> {
         TicketRepositoryImpl(get())
     }
-
-    // factory -> Her çağırıldığı noktada yeni instance üretir. Her fonksiyon için birer örnek
-
-    // scoped -> Class -> tüm fonksiyonlarına 1 örnek
 }
-
 
 
 

@@ -1,6 +1,6 @@
-package com.turkcell.data.dto
+package com.turkcell.domain.ticket
 
-data class TicketDto(
+data class Ticket(
     val id: String,
     val qrCode: String,
     val status: String,

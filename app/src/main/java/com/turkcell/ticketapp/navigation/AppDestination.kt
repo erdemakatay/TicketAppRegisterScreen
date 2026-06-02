@@ -8,3 +8,12 @@ object Login
 object Register
 @Serializable
 object HomePage
+
+@Serializable
+data class EventDetail(val id: String)
+
+@Serializable
+object MyTickets
+
+@Serializable
+data class TicketDetail(val ticketId: String)

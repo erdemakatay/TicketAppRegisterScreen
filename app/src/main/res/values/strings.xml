@@ -1,3 +1,14 @@
 <resources>
-    <string name="app_name">Ticket App</string>
+    <string name="app_name">TicketPass Pro</string>
+    <string name="action_sign_out">Oturumu Kapat</string>
+
+    <string name="tab_label_events">Güncel Etkinlikler</string>
+    <string name="tab_label_tickets">Bilet Cüzdanım</string>
+
+    <string name="card_label_category">Kategori No:</string>
+    <string name="state_active">AKTİF</string>
+    <string name="state_finished">KULLANILDI</string>
+
+    <string name="status_no_events">Şu an gösterimde olan bir etkinlik bulunamadı.</string>
+    <string name="status_no_tickets">Cüzdanınızda henüz tanımlı bir bilet yok.</string>
 </resources>
