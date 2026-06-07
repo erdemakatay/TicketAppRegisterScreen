@@ -55,6 +55,11 @@ dependencies {
     implementation(libs.navigation.compose)
     implementation(libs.androidx.compose.runtime)
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
+    implementation(libs.androidx.compose.foundation)
+    implementation(libs.transport.api)
+    implementation(libs.androidx.material3)
+    implementation(libs.firebase.crashlytics.buildtools)
+    implementation(libs.play.services.basement)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -73,5 +78,9 @@ dependencies {
 // Navigation
     implementation(libs.koin.android)
     implementation(libs.koin.androidx.compose)
+
+    // QR Code
+    implementation(libs.zxing.android.embedded)
+    implementation(libs.qrcode.kotlin)
 
 }

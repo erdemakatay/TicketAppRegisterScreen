@@ -115,6 +115,7 @@ val dataModule = module {
     single<TicketRepository> {
         TicketRepositoryImpl(get())
     }
+
 }
 
 

@@ -1,10 +1,7 @@
 package com.turkcell.data.util
 
 
-// tüm api isteklerim tek kalıpta ilerlesin . Yani 3 kişi kodluyoruz bu kodu ;
-// .success
-// .complete
-// .onSuccess demek yerine soyut programlama yapıyorum. Bu şekilde altyapı kurdum.
+
 sealed interface ApiResult<out T> {
     data class Success <T>(val data:T) : ApiResult<T>
 

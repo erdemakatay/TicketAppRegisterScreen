@@ -1,6 +1,5 @@
 package com.turkcell.ticketapp.viewmodel
 
-import com.turkcell.data.network.ApiException
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -9,6 +8,7 @@ import com.turkcell.domain.event.EventRepository
 import com.turkcell.domain.purchase.CreatePurchaseItemRequest
 import com.turkcell.domain.purchase.Purchase
 import com.turkcell.domain.purchase.PurchaseRepository
+import com.turkcell.util.ApiException
 import com.turkcell.util.toUserMessage
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

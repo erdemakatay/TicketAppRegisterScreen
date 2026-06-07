@@ -3,57 +3,53 @@ package com.turkcell.data.network
 import com.turkcell.data.dto.auth.RefreshRequestDto
 import com.turkcell.data.local.TokenStore
 import com.turkcell.data.remote.AuthApi
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import okhttp3.Authenticator
 import okhttp3.Request
 import okhttp3.Response
 import okhttp3.Route
 
-// Sadece HTTP 401'lerde çalış. Refresh akışı sürdür.
+
 class TokenAuthenticator(
-    private val tokenStore : TokenStore,
+    private val tokenStore: TokenStore,
     private val refreshApiProvider: () -> AuthApi,
 ) : Authenticator {
-    override fun authenticate(route: Route? , response: Response): Request? {
-        // İsteğin tekrar tekrar buraya düşmesi -> refresh olsa bile 401 gelebilir
-        if(response.priorResponseCount() >=1) return  null
-      // İstek 401' e düştüğü anda,  eğer sistemde jwt-refresh pairi tanımlıysa git refresh ile yeni jwt alıp isteği tekrar dene.
+    override fun authenticate(route: Route?, response: Response): Request? {
+        if (response.priorResponseCount() >= 1) return null
 
-    val refreshToken = tokenStore.refreshTokenBlocking() ?: return null;
-      return  synchronized(this) //lock
-      {
-          // Bu blokta birden fazla istek aynı anda 401 alırsa kuyruğa girer..
-          // Blok bitene kadar, yeni yapıları beklet..
-        val current = tokenStore.accessTokenBlocking()
-        val sentToken = response.request.header("Authorization")?.removePrefix("Bearer")
+        val refreshToken = tokenStore.refreshTokenBlocking() ?: return null;
+        return synchronized(this)
+        {
+            val current = tokenStore.accessTokenBlocking()
+            val sentToken = response.request.header("Authorization")?.removePrefix("Bearer")
 
-          // Başkası tarafından token değişmişse onu kullan ve devam et..
-        if(current != null && current != sentToken) {
-            return@synchronized response.request.signWith(current)
+            if (current != null && current != sentToken) {
+                return@synchronized response.request.signWith(current)
+            }
+
+            val newPair = runCatching {
+                runBlocking { refreshApiProvider().refresh(RefreshRequestDto(refreshToken)) }
+            }.getOrNull()
+
+            if (newPair == null) {
+                tokenStore.clearBlocking()
+                return@synchronized null
+            }
+
+            val currentRole = runBlocking { tokenStore.userRole.first() } ?: "USER"
+            tokenStore.saveBlocking(newPair.accessToken, newPair.refreshToken, currentRole) 
+            response.request.signWith(newPair.accessToken)
         }
-
-        val newPair = runCatching {
-            runBlocking { refreshApiProvider().refresh(RefreshRequestDto(refreshToken)) }
-        }.getOrNull()
-
-        if(newPair==null){
-            // Refresh başarısız
-            tokenStore.clearBlocking()
-            return@synchronized null
-        }
-
-          tokenStore.saveBlocking(newPair.accessToken, newPair.refreshToken)
-          response.request.signWith(newPair.accessToken)
-      }
     }
 
-    private fun Request.signWith(accesToken: String): Request = newBuilder().header("Authorization","Bearer $accesToken").build()
+    private fun Request.signWith(accesToken: String): Request =
+        newBuilder().header("Authorization", "Bearer $accesToken").build()
 
     private fun Response.priorResponseCount(): Int {
-        var count= 0
+        var count = 0
         var prior = priorResponse
-        while (prior != null)
-        {
+        while (prior != null) {
             count++
             prior = prior.priorResponse
         }

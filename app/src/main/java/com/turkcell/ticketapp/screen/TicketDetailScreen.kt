@@ -89,7 +89,6 @@ fun TicketDetailScreen(
 
                         Spacer(Modifier.height(32.dp))
 
-                        // Metni QR koda dönüştüren kütüphane çağrısı
                         val qrBitmap = remember(ticket.qrCode) {
                             generateQrCodeBitmap(ticket.qrCode)
                         }

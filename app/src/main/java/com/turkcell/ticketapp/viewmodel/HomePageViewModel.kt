@@ -1,6 +1,5 @@
 package com.turkcell.ticketapp.viewmodel
 
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.turkcell.domain.event.Event
 import com.turkcell.domain.event.EventRepository
@@ -12,14 +11,22 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import com.turkcell.domain.auth.AuthRepository
+import androidx.lifecycle.ViewModel
+
 
 data class HomePageUiState(
+    val isEventsLoading: Boolean = false,
+    val isEventsRefreshing: Boolean = false,
     val events: List<Event> = emptyList(),
+    val eventsError: String? = null,
+
+    val isTicketsLoading: Boolean = false,
+    val isTicketsRefreshing: Boolean = false,
     val myTickets: List<Ticket> = emptyList(),
-    val isLoadingEvents: Boolean = false,
-    val isLoadingTickets: Boolean = false,
-    val errorMessage: String? = null
-)
+    val ticketsError: String? = null
+) {
+    val isDashboardRefreshing: Boolean get() = isEventsRefreshing || isTicketsRefreshing
+}
 
 class HomePageViewModel(
     private val eventRepository: EventRepository,
@@ -31,51 +38,98 @@ class HomePageViewModel(
     val state: StateFlow<HomePageUiState> = _state.asStateFlow()
 
     init {
-        LoadEvents()
-        fetchMyTickets()
+        loadDashboardData()
     }
 
-    fun LoadEvents() {
+    private fun loadDashboardData() {
+        loadEvents()
+        loadMyTickets()
+    }
+
+    fun refreshDashboard() {
+        refreshEvents()
+        refreshMyTickets()
+    }
+
+    private fun loadEvents() {
+        if (_state.value.isEventsLoading || _state.value.isEventsRefreshing) return
+        _state.update { it.copy(isEventsLoading = true, eventsError = null) }
+        fetchEvents()
+    }
+
+    fun refreshEvents() {
+        if (_state.value.isEventsLoading || _state.value.isEventsRefreshing) return
+        _state.update { it.copy(isEventsRefreshing = true, eventsError = null) }
+        fetchEvents()
+    }
+
+    private fun fetchEvents() {
         viewModelScope.launch {
-            _state.update { it.copy(isLoadingEvents = true, errorMessage = null) }
             eventRepository.getEvents()
                 .onSuccess { eventList ->
-                    _state.update { it.copy(events = eventList, isLoadingEvents = false) }
+                    _state.update {
+                        it.copy(
+                            events = eventList,
+                            isEventsLoading = false,
+                            isEventsRefreshing = false
+                        )
+                    }
                 }
                 .onFailure { error ->
                     _state.update {
                         it.copy(
-                            errorMessage = error.message ?: "Etkinlikler yüklenemedi",
-                            isLoadingEvents = false
+                            eventsError = error.message ?: "Etkinlikler yüklenemedi",
+                            isEventsLoading = false,
+                            isEventsRefreshing = false
                         )
                     }
                 }
         }
     }
 
-    fun fetchMyTickets() {
+    private fun loadMyTickets() {
+        if (_state.value.isTicketsLoading || _state.value.isTicketsRefreshing) return
+        _state.update { it.copy(isTicketsLoading = true, ticketsError = null) }
+        fetchTickets()
+    }
+
+    fun refreshMyTickets() {
+        if (_state.value.isTicketsLoading || _state.value.isTicketsRefreshing) return
+        _state.update { it.copy(isTicketsRefreshing = true, ticketsError = null) }
+        fetchTickets()
+    }
+
+    private fun fetchTickets() {
         viewModelScope.launch {
-            _state.update { it.copy(isLoadingTickets = true, errorMessage = null) }
             ticketRepository.getMyTickets()
                 .onSuccess { ticketList ->
-                    _state.update { it.copy(myTickets = ticketList, isLoadingTickets = false) }
+                    _state.update {
+                        it.copy(
+                            myTickets = ticketList,
+                            isTicketsLoading = false,
+                            isTicketsRefreshing = false
+                        )
+                    }
                 }
                 .onFailure { error ->
                     _state.update {
                         it.copy(
-                            errorMessage = error.message ?: "Biletler yüklenemedi",
-                            isLoadingTickets = false
+                            ticketsError = error.message ?: "Biletler yüklenemedi",
+                            isTicketsLoading = false,
+                            isTicketsRefreshing = false
                         )
                     }
                 }
         }
     }
 
-    fun consumeError() = _state.update { it.copy(errorMessage = null) }
+    fun consumeEventsError() = _state.update { it.copy(eventsError = null) }
+    fun consumeTicketsError() = _state.update { it.copy(ticketsError = null) }
 
     fun logout() {
         viewModelScope.launch {
             authRepository.logout()
+            _state.value = HomePageUiState()
         }
     }
 }

@@ -2,9 +2,11 @@ package com.turkcell.ticketapp.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.turkcell.data.network.ApiException
-import com.turkcell.data.network.NetworkException
 import com.turkcell.domain.auth.AuthRepository
+import com.turkcell.domain.auth.UserRole
+import com.turkcell.util.ApiException
+import com.turkcell.util.NetworkException
+import com.turkcell.util.toUserMessage
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -15,7 +17,9 @@ data class LoginUiState(val email: String = "",
                         val password: String = "",
                         val isLoading: Boolean = false,
                         val errorMessage: String? = null,
-                        val isLoggedIn: Boolean = false
+                        val isLoggedIn: Boolean = false,
+                        val userRole: UserRole? = null
+
 ) {
     val canSubmit: Boolean get() = email.isNotBlank() && password.length >= 8 && !isLoading
 }
@@ -41,19 +45,8 @@ class LoginViewModel(
         viewModelScope.launch {
             authRepository.login(current.email, current.password)
                 .onSuccess { _state.update { it.copy(isLoading = false, isLoggedIn = true) } }
-                .onFailure { error -> _state.update { it.copy(isLoading = false, errorMessage = error.toLoginMessage()) } }
+                .onFailure { error -> _state.update { it.copy(isLoading = false, errorMessage = error.toUserMessage()) } }
         }
     }
 }
 
-// Ömürlük fonksiyon
-
-internal fun Throwable.toLoginMessage(): String = when(this)
-{
-    is ApiException -> when(code) {
-        401 -> "Email veya şifre hatalı"
-        in 500..599 -> "Sunucu şu anda cevap veremiyor"
-        else -> "Beklenmeyen bir hata oluştu"
-    }
-    is NetworkException -> "İnternet bağlantısı yok"
-    else -> message ?: "Bilinmeyen bir hata oluştu." }
